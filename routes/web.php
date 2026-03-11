@@ -16,15 +16,33 @@ use App\Http\Controllers\Web\AdminAuthController;
 */
 
 // Domain Configuration (Change these for local dev, e.g., 'localhost')
-$mainDomain = 'saldo.com.co';
-$appDomain = 'pay.saldo.com.co';
-$adminDomain = 'admin.saldo.com.co';
+$mainDomain = env('MAIN_DOMAIN', 'saldo.com.co');
+$appDomain = env('APP_DOMAIN', 'pay.saldo.com.co');
+$adminDomain = env('ADMIN_DOMAIN', 'admin.saldo.com.co');
 
 // -----------------------------------------------------------------------------
 // 1. PUBLIC LANDING PAGE (saldo.com.co)
 // -----------------------------------------------------------------------------
 Route::domain($mainDomain)->group(function () {
-    Route::view('/', 'welcome')->name('home');
+    Route::get('/', function () {
+        return redirect('/es-CO');
+    })->name('home');
+
+    Route::pattern('locale', '^[a-z]{2}-[A-Z]{2}$');
+
+    Route::middleware('locale.route')->group(function () {
+        Route::get('/{locale}', function (string $locale) {
+            return view('welcome', ['locale' => $locale]);
+        })->name('home.locale');
+
+        Route::get('/{locale}/terminos', function (string $locale) {
+            return view('legal.terms', ['locale' => $locale]);
+        })->name('legal.terms');
+
+        Route::get('/{locale}/privacidad', function (string $locale) {
+            return view('legal.privacy', ['locale' => $locale]);
+        })->name('legal.privacy');
+    });
 });
 
 // -----------------------------------------------------------------------------

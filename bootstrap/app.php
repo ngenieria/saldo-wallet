@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.ip' => \App\Http\Middleware\AdminIpAllowlistMiddleware::class,
             'session.version' => \App\Http\Middleware\EnsureSessionVersionMiddleware::class,
             'mobile.only' => \App\Http\Middleware\MobileOnlyMiddleware::class,
+            'locale.route' => \App\Http\Middleware\SetLocaleFromRouteMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

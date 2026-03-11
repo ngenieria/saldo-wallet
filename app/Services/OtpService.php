@@ -37,8 +37,18 @@ class OtpService
 
         if (in_array('email', $channels, true)) {
             if ((string) $user->email !== '') {
-                app(SettingsService::class)->applyMailConfig();
-                Mail::to($user->email)->send(new OtpCodeMail($user->name, $code, $ttlMinutes));
+                try {
+                    app(SettingsService::class)->applyMailConfig();
+                    Mail::to($user->email)->send(new OtpCodeMail($user->name, $code, $ttlMinutes));
+                } catch (\Throwable $e) {
+                    Log::error('OTP email send failed', ['message' => $e->getMessage()]);
+                    try {
+                        config(['mail.default' => 'sendmail']);
+                        Mail::to($user->email)->send(new OtpCodeMail($user->name, $code, $ttlMinutes));
+                    } catch (\Throwable $e2) {
+                        Log::error('OTP email fallback sendmail failed', ['message' => $e2->getMessage()]);
+                    }
+                }
             }
         }
     }
