@@ -32,14 +32,13 @@ class AuthController extends Controller
         $request->validate([
             'identifier' => ['required'],
             'password' => ['required'],
-            'pin' => ['required', 'digits:4'],
         ]);
 
         $user = User::where('email', $request->identifier)
             ->orWhere('mobile_phone', $request->identifier)
             ->first();
 
-        if (!$user || !Hash::check($request->password, $user->password) || !Hash::check($request->pin, (string) $user->security_pin)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             if ($user) {
                 $user->increment('failed_login_attempts');
                 if ($user->failed_login_attempts >= 5) {
@@ -90,66 +89,20 @@ class AuthController extends Controller
         $device->ip_address = $request->ip();
         $device->save();
 
-        $purpose = null;
-        $method = null;
-        if (!$user->mobile_verified_at) {
-            $purpose = 'mobile_verify';
-            $method = 'sms';
-        } elseif ($isNewDevice) {
-            $purpose = 'device_verification';
-            $method = 'sms';
-        } elseif ($user->two_factor_enabled) {
-            if ($user->two_factor_type === 'totp') {
-                $purpose = 'login_totp';
-                $method = 'totp';
-            } else {
-                $purpose = 'login_2fa';
-                $method = 'sms';
-            }
-        }
+        $purpose = !$user->mobile_verified_at ? 'mobile_verify' : ($isNewDevice ? 'device_verification' : 'login');
 
-        if ($purpose) {
-            session([
-                'pending_challenge_user_id' => $user->id,
-                'pending_challenge_purpose' => $purpose,
-                'pending_device_fp' => $fingerprint,
-            ]);
-
-            if ($method === 'sms') {
-                $otp = app(OtpService::class);
-                if ($otp->canResend($user, $purpose)) {
-                    $otp->issueSms($user, $purpose);
-                }
-            }
-
-            return redirect()->route('verification.form');
-        }
-
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        $user->failed_login_attempts = 0;
-        $user->last_login_at = now();
-        $user->last_login_ip = $request->ip();
-        $user->save();
-
-        LoginLog::create([
-            'user_id' => $user->id,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'status' => 'success',
-            'created_at' => now(),
+        session([
+            'pending_challenge_user_id' => $user->id,
+            'pending_challenge_purpose' => $purpose,
+            'pending_device_fp' => $fingerprint,
         ]);
 
-        AuditLog::create([
-            'user_id' => $user->id,
-            'action' => 'login',
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'metadata' => ['device_fingerprint' => $fingerprint],
-        ]);
+        $otp = app(OtpService::class);
+        if ($otp->canResend($user, $purpose)) {
+            $otp->issueSmsAndEmail($user, $purpose);
+        }
 
-        return redirect()->intended('dashboard');
+        return redirect()->route('verification.form');
     }
 
     public function register(Request $request)
@@ -211,7 +164,7 @@ class AuthController extends Controller
         ]);
 
         $otp = app(OtpService::class);
-        $otp->issueSms($user, 'mobile_verify');
+        $otp->issueSmsAndEmail($user, 'mobile_verify');
 
         return redirect()->route('verification.form');
     }
@@ -230,19 +183,18 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        $method = $purpose === 'login_totp' ? 'totp' : 'sms';
+        $method = $purpose === 'login_totp' ? 'totp' : 'otp';
 
         return view('auth.verify-otp', [
             'method' => $method,
             'purpose' => $purpose,
             'maskedPhone' => $this->maskPhone($user->mobile_phone),
+            'maskedEmail' => $this->maskEmail($user->email),
         ]);
     }
 
     public function verifyChallenge(Request $request)
     {
-        $request->validate(['code' => 'required|digits:6']);
-
         $userId = session('pending_challenge_user_id');
         $purpose = session('pending_challenge_purpose');
         $fingerprint = session('pending_device_fp');
@@ -254,6 +206,12 @@ class AuthController extends Controller
         $user = User::find($userId);
         if (!$user) {
             return redirect()->route('login');
+        }
+
+        if ($purpose === 'login_totp') {
+            $request->validate(['code' => 'required|digits:6']);
+        } else {
+            $request->validate(['code' => 'required|digits:4']);
         }
 
         $ok = false;
@@ -333,7 +291,7 @@ class AuthController extends Controller
 
         $otp = app(OtpService::class);
         if ($otp->canResend($user, $purpose)) {
-            $otp->issueSms($user, $purpose);
+            $otp->issueSmsAndEmail($user, $purpose);
         }
 
         return redirect()->route('verification.form');
@@ -394,5 +352,17 @@ class AuthController extends Controller
         }
         $last = substr($digits, -4);
         return '***' . $last;
+    }
+
+    private function maskEmail(?string $email): ?string
+    {
+        $email = trim((string) $email);
+        if ($email === '' || !str_contains($email, '@')) {
+            return null;
+        }
+
+        [$local, $domain] = explode('@', $email, 2);
+        $local = $local === '' ? '*' : substr($local, 0, 1) . str_repeat('*', max(1, strlen($local) - 1));
+        return $local . '@' . $domain;
     }
 }

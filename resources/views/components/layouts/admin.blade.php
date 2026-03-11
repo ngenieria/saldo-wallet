@@ -29,6 +29,7 @@
                 <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Transactions</a>
                 <a href="{{ route('admin.security') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Security</a>
                 <a href="{{ route('admin.settings.security') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Settings</a>
+                <a href="{{ route('admin.settings.integrations') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Integrations</a>
             </nav>
             <div class="p-4 border-t border-gray-700">
                 <form method="POST" action="{{ route('admin.logout') }}">

@@ -62,13 +62,13 @@ class AuthController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        app(OtpService::class)->issueSms($user, 'mobile_verify');
+        app(OtpService::class)->issueSmsAndEmail($user, 'mobile_verify');
 
         return response()->json([
             'message' => 'Verification required',
             'requires_verification' => true,
             'purpose' => 'mobile_verify',
-            'method' => 'sms',
+            'method' => 'sms_email',
         ], 202);
     }
 
@@ -155,14 +155,14 @@ class AuthController extends Controller
             if ($method === 'sms') {
                 $otp = app(OtpService::class);
                 if ($otp->canResend($user, $purpose)) {
-                    $otp->issueSms($user, $purpose);
+                    $otp->issueSmsAndEmail($user, $purpose);
                 }
             }
             return response()->json([
                 'message' => 'Verification required',
                 'requires_verification' => true,
                 'purpose' => $purpose,
-                'method' => $method,
+                'method' => $method === 'sms' ? 'sms_email' : $method,
             ], 202);
         }
 
@@ -227,7 +227,7 @@ class AuthController extends Controller
             'identifier' => 'required|string',
             'password' => 'required|string',
             'pin' => 'required|digits:4',
-            'code' => 'required|digits:6',
+            'code' => ['required', 'regex:/^\d{4,6}$/'],
             'purpose' => 'required|string',
         ]);
 
@@ -242,12 +242,18 @@ class AuthController extends Controller
         $purpose = (string) $request->purpose;
         $ok = false;
         if (in_array($purpose, ['login_totp', 'device_verification_totp'], true)) {
+            if (strlen((string) $request->code) !== 6) {
+                return response()->json(['message' => 'Invalid code'], 422);
+            }
             if (!$user->two_factor_enabled || $user->two_factor_type !== 'totp' || !$user->two_factor_secret) {
                 return response()->json(['message' => 'TOTP not enabled'], 400);
             }
             $secret = decrypt($user->two_factor_secret);
             $ok = Totp::verify($secret, (string) $request->code);
         } else {
+            if (strlen((string) $request->code) !== 4) {
+                return response()->json(['message' => 'Invalid code'], 422);
+            }
             $ok = app(OtpService::class)->verify($user, $purpose, (string) $request->code);
         }
 

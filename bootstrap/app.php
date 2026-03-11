@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class,
             'admin.ip' => \App\Http\Middleware\AdminIpAllowlistMiddleware::class,
             'session.version' => \App\Http\Middleware\EnsureSessionVersionMiddleware::class,
+            'mobile.only' => \App\Http\Middleware\MobileOnlyMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

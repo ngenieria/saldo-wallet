@@ -2,19 +2,21 @@
 
 namespace App\Services;
 
+use App\Mail\OtpCodeMail;
 use App\Models\OneTimeCode;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class OtpService
 {
-    public function issueSms(User $user, string $purpose, ?int $ttlMinutes = 10): void
+    public function issue(User $user, string $purpose, array $channels = ['sms'], ?int $ttlMinutes = 10, int $digits = 4): void
     {
         $ttlMinutes = $ttlMinutes ?? 10;
 
-        $code = (string) random_int(100000, 999999);
+        $code = $this->generateCode($digits);
 
         OneTimeCode::create([
             'user_id' => $user->id,
@@ -23,10 +25,37 @@ class OtpService
             'expires_at' => now()->addMinutes($ttlMinutes),
         ]);
 
-        $to = $this->toE164($user->mobile_phone);
+        $channels = array_values(array_unique($channels));
 
-        $message = "Saldo OTP: {$code}. Expira en {$ttlMinutes} minutos.";
-        $this->sendSms($to, $message);
+        if (in_array('sms', $channels, true)) {
+            $to = $this->toE164($user->mobile_phone);
+            if ($to !== '') {
+                $message = "Saldo: tu código es {$code}. Expira en {$ttlMinutes} minutos.";
+                $this->sendSms($to, $message);
+            }
+        }
+
+        if (in_array('email', $channels, true)) {
+            if ((string) $user->email !== '') {
+                app(SettingsService::class)->applyMailConfig();
+                Mail::to($user->email)->send(new OtpCodeMail($user->name, $code, $ttlMinutes));
+            }
+        }
+    }
+
+    public function issueSms(User $user, string $purpose, ?int $ttlMinutes = 10): void
+    {
+        $this->issue($user, $purpose, ['sms'], $ttlMinutes, 4);
+    }
+
+    public function issueEmail(User $user, string $purpose, ?int $ttlMinutes = 10): void
+    {
+        $this->issue($user, $purpose, ['email'], $ttlMinutes, 4);
+    }
+
+    public function issueSmsAndEmail(User $user, string $purpose, ?int $ttlMinutes = 10): void
+    {
+        $this->issue($user, $purpose, ['sms', 'email'], $ttlMinutes, 4);
     }
 
     public function verify(User $user, string $purpose, string $code, int $maxAttempts = 5): bool
@@ -71,6 +100,15 @@ class OtpService
         return $latest->created_at->diffInSeconds(now()) >= $cooldownSeconds;
     }
 
+    public function sendTestSms(string $to, string $message): void
+    {
+        $to = $this->toE164($to);
+        if ($to === '') {
+            return;
+        }
+        $this->sendSms($to, $message);
+    }
+
     private function toE164(?string $raw): string
     {
         $raw = trim((string) $raw);
@@ -93,12 +131,13 @@ class OtpService
 
     private function sendSms(string $to, string $message): void
     {
-        $driver = env('SMS_DRIVER', 'log');
+        $settings = app(SettingsService::class);
+        $driver = $settings->get('sms.driver', env('SMS_DRIVER', 'log')) ?? 'log';
 
         if ($driver === 'twilio') {
-            $sid = (string) env('TWILIO_ACCOUNT_SID');
-            $token = (string) env('TWILIO_AUTH_TOKEN');
-            $from = (string) env('TWILIO_FROM');
+            $sid = (string) ($settings->get('twilio.account_sid') ?? env('TWILIO_ACCOUNT_SID'));
+            $token = (string) ($settings->get('twilio.auth_token') ?? env('TWILIO_AUTH_TOKEN'));
+            $from = (string) ($settings->get('twilio.from') ?? env('TWILIO_FROM'));
 
             if ($sid === '' || $token === '' || $from === '') {
                 Log::warning('SMS driver=twilio configured but credentials are missing.');
@@ -127,5 +166,12 @@ class OtpService
 
         Log::info('OTP SMS', ['to' => $to, 'message' => $message, 'driver' => $driver]);
     }
-}
 
+    private function generateCode(int $digits): string
+    {
+        $digits = max(4, min(8, $digits));
+        $max = (10 ** $digits) - 1;
+        $n = random_int(0, $max);
+        return str_pad((string) $n, $digits, '0', STR_PAD_LEFT);
+    }
+}
