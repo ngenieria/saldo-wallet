@@ -40,29 +40,31 @@
             setTimeout(() => this.messages.push({ from: 'bot', text: answer }), 250);
         }
     }"
-    class="fixed bottom-5 right-5 z-50"
+    class="fixed bottom-5 left-4 right-4 sm:left-auto sm:right-5 z-50 flex sm:block justify-center"
 >
-    <button
-        type="button"
-        @click="open = !open"
-        class="w-14 h-14 rounded-2xl bg-gray-900 text-white shadow-xl flex items-center justify-center hover:bg-black"
-    >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h6m7 7l-3-3H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v14z" />
-        </svg>
+    <button type="button" @click="open = !open" class="group w-full sm:w-auto max-w-[520px] flex items-stretch rounded-3xl shadow-2xl overflow-hidden border border-gray-200 bg-gray-900 hover:bg-black">
+        <div class="px-4 py-3 flex flex-col justify-center">
+            <div class="text-white text-base font-black leading-tight">¿Necesitas ayuda?</div>
+            <div class="text-white/80 text-sm leading-tight">Chatea con nosotros</div>
+        </div>
+        <div class="w-16 flex items-center justify-center bg-white/10 group-hover:bg-white/15">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h6m7 7l-3-3H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v14z" />
+            </svg>
+        </div>
     </button>
 
-    <div x-cloak x-show="open" class="mt-3 w-[340px] bg-white border border-gray-100 rounded-3xl shadow-2xl overflow-hidden">
-        <div class="px-4 py-3 bg-gradient-to-r from-emerald-600 to-sky-600 text-white flex items-center justify-between">
+    <div x-cloak x-show="open" class="mt-3 w-full sm:w-[360px] max-w-[520px] bg-white border border-gray-100 rounded-3xl shadow-2xl overflow-hidden">
+        <div class="px-4 py-3 bg-gray-900 text-white flex items-center justify-between">
             <div class="font-semibold text-sm">SaldoBot</div>
-            <button type="button" @click="open=false" class="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center">
+            <button type="button" @click="open=false" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
 
-        <div class="p-4 space-y-3 max-h-[360px] overflow-y-auto">
+        <div class="p-4 space-y-3 max-h-[380px] overflow-y-auto">
             <template x-for="(m, idx) in messages" :key="idx">
                 <div class="flex" :class="m.from === 'user' ? 'justify-end' : 'justify-start'">
                     <div
@@ -78,14 +80,13 @@
             <form @submit.prevent="send()" class="flex gap-2">
                 <input
                     x-model="input"
-                    class="flex-1 px-3 py-2 rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 text-sm"
+                    class="flex-1 px-3 py-2 rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:bg-white focus:ring-4 focus:ring-gray-200 focus:border-gray-500 text-sm"
                     placeholder="Escribe tu pregunta…"
                 />
-                <button type="submit" class="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">
+                <button type="submit" class="px-4 py-2 rounded-2xl bg-gray-900 hover:bg-black text-white text-sm font-semibold">
                     Enviar
                 </button>
             </form>
         </div>
     </div>
 </div>
-

@@ -95,21 +95,26 @@ class SettingsService
             return $this->cache;
         }
 
-        if (!Schema::hasTable('system_settings')) {
+        try {
+            if (!Schema::hasTable('system_settings')) {
+                $this->cache = [];
+                return $this->cache;
+            }
+
+            $rows = SystemSetting::query()->get(['key', 'value', 'is_encrypted'])->all();
+            $map = [];
+            foreach ($rows as $row) {
+                $map[$row->key] = [
+                    'value' => $row->value,
+                    'is_encrypted' => (bool) $row->is_encrypted,
+                ];
+            }
+
+            $this->cache = $map;
+            return $this->cache;
+        } catch (\Throwable $e) {
             $this->cache = [];
             return $this->cache;
         }
-
-        $rows = SystemSetting::query()->get(['key', 'value', 'is_encrypted'])->all();
-        $map = [];
-        foreach ($rows as $row) {
-            $map[$row->key] = [
-                'value' => $row->value,
-                'is_encrypted' => (bool) $row->is_encrypted,
-            ];
-        }
-
-        $this->cache = $map;
-        return $this->cache;
     }
 }

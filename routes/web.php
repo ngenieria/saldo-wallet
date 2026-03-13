@@ -28,11 +28,53 @@ Route::domain($mainDomain)->group(function () {
         return redirect('/es-CO');
     })->name('home');
 
+    Route::get('/sitemap.xml', function () {
+        $locales = ['es-CO', 'es-AR', 'es-MX', 'es-ES', 'en-US'];
+        $urls = [];
+
+        foreach ($locales as $locale) {
+            $urls[] = url('/' . $locale);
+            $urls[] = url('/' . $locale . '/terminos');
+            $urls[] = url('/' . $locale . '/privacidad');
+        }
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        foreach ($urls as $u) {
+            $xml .= "  <url>\n";
+            $xml .= '    <loc>' . htmlspecialchars($u, ENT_XML1) . "</loc>\n";
+            $xml .= '    <lastmod>' . now()->toAtomString() . "</lastmod>\n";
+            $xml .= "  </url>\n";
+        }
+        $xml .= "</urlset>\n";
+
+        return response($xml, 200)->header('Content-Type', 'application/xml');
+    });
+
+    Route::get('/robots.txt', function () {
+        $content = "User-agent: *\nAllow: /\n\nSitemap: " . url('/sitemap.xml') . "\n";
+        return response($content, 200)->header('Content-Type', 'text/plain');
+    });
+
     Route::pattern('locale', '^[a-z]{2}-[A-Z]{2}$');
 
     Route::middleware('locale.route')->group(function () {
         Route::get('/{locale}', function (string $locale) {
-            return view('welcome', ['locale' => $locale]);
+            $settings = app(\App\Services\SettingsService::class);
+            $title = $settings->get('seo.home.' . $locale . '.title') ?? null;
+            $description = $settings->get('seo.home.' . $locale . '.description') ?? null;
+            $robots = $settings->get('seo.home.' . $locale . '.robots') ?? null;
+            $keywords = $settings->get('seo.home.' . $locale . '.keywords') ?? null;
+
+            return view('welcome', [
+                'locale' => $locale,
+                'seo' => [
+                    'title' => $title,
+                    'description' => $description,
+                    'robots' => $robots,
+                    'keywords' => $keywords,
+                ],
+            ]);
         })->name('home.locale');
 
         Route::get('/{locale}/terminos', function (string $locale) {
@@ -129,6 +171,10 @@ Route::domain($adminDomain)->name('admin.')->group(function () {
         Route::post('/settings/integrations', [App\Http\Controllers\Web\AdminController::class, 'saveIntegrations'])->name('settings.integrations.save');
         Route::post('/settings/integrations/test-email', [App\Http\Controllers\Web\AdminController::class, 'testEmail'])->name('settings.integrations.testEmail');
         Route::post('/settings/integrations/test-sms', [App\Http\Controllers\Web\AdminController::class, 'testSms'])->name('settings.integrations.testSms');
+        Route::post('/settings/tools/clear-cache', [App\Http\Controllers\Web\AdminController::class, 'clearCaches'])->name('settings.tools.clearCache');
+        Route::get('/settings/seo', [App\Http\Controllers\Web\AdminController::class, 'seoSettings'])->name('settings.seo');
+        Route::post('/settings/seo', [App\Http\Controllers\Web\AdminController::class, 'saveSeo'])->name('settings.seo.save');
+        Route::post('/settings/seo/favicon', [App\Http\Controllers\Web\AdminController::class, 'uploadFavicon'])->name('settings.seo.favicon');
         Route::post('/settings/2fa/totp/start', [App\Http\Controllers\Web\AdminController::class, 'startTotpSetup'])->name('settings.2fa.totp.start');
         Route::post('/settings/2fa/totp/verify', [App\Http\Controllers\Web\AdminController::class, 'verifyTotpSetup'])->name('settings.2fa.totp.verify');
         Route::post('/settings/2fa/disable', [App\Http\Controllers\Web\AdminController::class, 'disable2fa'])->name('settings.2fa.disable');

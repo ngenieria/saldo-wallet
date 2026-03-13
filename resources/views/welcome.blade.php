@@ -1,16 +1,26 @@
-@php($locale = request()->route('locale') ?? 'es-CO')
+@php($locale = $locale ?? request()->route('locale') ?? 'es-CO')
+@php($seo = $seo ?? [])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Saldo Wallet</title>
+    <title>{{ $seo['title'] ?? ('Saldo · ' . __('hero.title_1') . ' ' . __('hero.title_2')) }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <meta name="description" content="Saldo Wallet: mueve tu plata desde el celu. Envía, recibe y administra tu dinero con seguridad.">
+    <meta name="description" content="{{ $seo['description'] ?? __('hero.subtitle') }}">
+    @if (!empty($seo['robots']))
+        <meta name="robots" content="{{ $seo['robots'] }}">
+    @endif
+    @if (!empty($seo['keywords']))
+        <meta name="keywords" content="{{ $seo['keywords'] }}">
+    @endif
+    <link rel="canonical" href="{{ url('/' . $locale) }}">
+    @php($faviconVersion = app(\App\Services\SettingsService::class)->get('seo.favicon_version') ?? '1')
+    <link rel="icon" href="/favicon.ico?v={{ $faviconVersion }}">
 </head>
 <body class="antialiased font-sans bg-gray-50">
-    <div class="bg-gradient-to-br from-emerald-50 via-white to-sky-50 min-h-screen">
+    <div class="bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen">
         <div class="bg-white/70 backdrop-blur border-b border-gray-100">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between">
                 <div class="text-xs text-gray-500">Soporte: support@saldo.com.co</div>
@@ -28,21 +38,21 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div x-data="{ open: null }" class="h-16 flex items-center justify-between">
                         <a href="{{ route('home') }}" class="text-2xl font-black text-gray-900 tracking-tight">
-                            Saldo<span class="text-emerald-600">.</span>
+                            Saldo<span class="text-gray-900">.</span>
                         </a>
 
                         <nav class="hidden lg:flex items-center gap-1">
                             <button @mouseenter="open='productos'" @mouseleave="open=null" class="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 rounded-xl hover:bg-gray-50">
-                                Productos
+                                {{ __('nav.products') }}
                             </button>
                             <button @mouseenter="open='seguridad'" @mouseleave="open=null" class="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 rounded-xl hover:bg-gray-50">
-                                Seguridad
+                                {{ __('nav.security') }}
                             </button>
                             <button @mouseenter="open='ayuda'" @mouseleave="open=null" class="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 rounded-xl hover:bg-gray-50">
-                                Ayuda
+                                {{ __('nav.help') }}
                             </button>
                             <a href="#nosotros" class="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 rounded-xl hover:bg-gray-50">
-                                Nosotros
+                                {{ __('nav.about') }}
                             </a>
 
                             <div class="relative" @mouseenter="open='productos'" @mouseleave="open=null">
@@ -51,34 +61,34 @@
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Wallet</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="#features" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Bolsillos</a>
-                                                <a href="#features" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Transferencias</a>
-                                                <a href="#features" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Pagos con QR</a>
+                                                <a href="#features" class="block text-sm font-semibold text-gray-900 hover:text-black">{{ __('features.item1.title') }}</a>
+                                                <a href="#features" class="block text-sm font-semibold text-gray-900 hover:text-black">{{ __('features.item2.title') }}</a>
+                                                <a href="#features" class="block text-sm font-semibold text-gray-900 hover:text-black">{{ __('features.item3.title') }}</a>
                                             </div>
                                         </div>
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Servicios</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="#servicios" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Recargas</a>
-                                                <a href="#servicios" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Paga facturas</a>
-                                                <a href="#servicios" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Tienda</a>
+                                                <a href="#servicios" class="block text-sm font-semibold text-gray-900 hover:text-black">Recargas</a>
+                                                <a href="#servicios" class="block text-sm font-semibold text-gray-900 hover:text-black">Pagos</a>
+                                                <a href="#servicios" class="block text-sm font-semibold text-gray-900 hover:text-black">Tienda</a>
                                             </div>
                                         </div>
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Empieza</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="{{ route('register') }}" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Crear cuenta</a>
-                                                <a href="{{ route('login') }}" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Ingresar</a>
-                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Preguntas</a>
+                                                <a href="{{ route('register') }}" class="block text-sm font-semibold text-gray-900 hover:text-black">{{ __('cta.create_account') }}</a>
+                                                <a href="{{ route('login') }}" class="block text-sm font-semibold text-gray-900 hover:text-black">{{ __('cta.sign_in') }}</a>
+                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-black">Preguntas</a>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="mt-6 bg-gradient-to-r from-emerald-600 to-sky-600 rounded-2xl p-5 text-white flex items-center justify-between">
+                                    <div class="mt-6 bg-gray-900 rounded-2xl p-5 text-white flex items-center justify-between">
                                         <div>
                                             <div class="text-sm font-bold">Saldo Wallet en tu celular</div>
                                             <div class="text-xs opacity-90 mt-1">Crea tu cuenta y empieza a mover tu plata.</div>
                                         </div>
-                                        <a href="{{ route('register') }}" class="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-sm font-semibold">Empezar</a>
+                                        <a href="{{ route('register') }}" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-sm font-semibold">{{ __('hero.start') }}</a>
                                     </div>
                                 </div>
                             </div>
@@ -89,25 +99,25 @@
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Protección</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">OTP por SMS y Email</a>
-                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Dispositivos confiables</a>
-                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Monitoreo antifraude</a>
+                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-black">OTP</a>
+                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-black">Dispositivos</a>
+                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-black">Anti-fraude</a>
                                             </div>
                                         </div>
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Consejos</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Evita estafas</a>
-                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Cuida tu clave</a>
-                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Reporta actividad</a>
+                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-black">Evita estafas</a>
+                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-black">Cuida tu clave</a>
+                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-black">Reporta actividad</a>
                                             </div>
                                         </div>
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Panel Admin</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="https://admin.saldo.com.co/login" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Ingresar</a>
-                                                <a href="https://admin.saldo.com.co/security" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Dashboard seguridad</a>
-                                                <a href="https://admin.saldo.com.co/settings/integrations" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">SMTP/Twilio</a>
+                                                <a href="https://admin.saldo.com.co/login" class="block text-sm font-semibold text-gray-900 hover:text-black">{{ __('cta.sign_in') }}</a>
+                                                <a href="https://admin.saldo.com.co/security" class="block text-sm font-semibold text-gray-900 hover:text-black">Seguridad</a>
+                                                <a href="https://admin.saldo.com.co/settings/integrations" class="block text-sm font-semibold text-gray-900 hover:text-black">Integraciones</a>
                                             </div>
                                         </div>
                                     </div>
@@ -120,17 +130,17 @@
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Soporte</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Preguntas frecuentes</a>
-                                                <a href="#contacto" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Contáctanos</a>
-                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Seguridad</a>
+                                                <a href="#faq" class="block text-sm font-semibold text-gray-900 hover:text-black">Preguntas frecuentes</a>
+                                                <a href="#contacto" class="block text-sm font-semibold text-gray-900 hover:text-black">Contáctanos</a>
+                                                <a href="#seguridad" class="block text-sm font-semibold text-gray-900 hover:text-black">{{ __('nav.security') }}</a>
                                             </div>
                                         </div>
                                         <div>
                                             <div class="text-xs font-bold text-gray-400 uppercase">Comunidad</div>
                                             <div class="mt-3 space-y-2">
-                                                <a href="#nosotros" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Noticias</a>
-                                                <a href="#nosotros" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Trabaja con nosotros</a>
-                                                <a href="#nosotros" class="block text-sm font-semibold text-gray-900 hover:text-emerald-700">Blog</a>
+                                                <a href="#nosotros" class="block text-sm font-semibold text-gray-900 hover:text-black">Noticias</a>
+                                                <a href="#nosotros" class="block text-sm font-semibold text-gray-900 hover:text-black">Trabaja con nosotros</a>
+                                                <a href="#nosotros" class="block text-sm font-semibold text-gray-900 hover:text-black">Blog</a>
                                             </div>
                                         </div>
                                     </div>
@@ -139,9 +149,21 @@
                         </nav>
 
                         <div class="hidden lg:flex items-center gap-3">
-                            <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50">Ingresar</a>
-                            <a href="{{ route('register') }}" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700">
-                                Crear cuenta
+                            <div x-data="{ openLang: false }" class="relative">
+                                <button type="button" @click="openLang = !openLang" class="px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                                    {{ $locale }}
+                                </button>
+                                <div x-cloak x-show="openLang" @click.away="openLang=false" class="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden">
+                                    <a class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50" href="{{ url('/es-CO') }}">es-CO</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50" href="{{ url('/es-AR') }}">es-AR</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50" href="{{ url('/es-MX') }}">es-MX</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50" href="{{ url('/es-ES') }}">es-ES</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50" href="{{ url('/en-US') }}">en-US</a>
+                                </div>
+                            </div>
+                            <a href="{{ route('login') }}" class="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50">{{ __('cta.sign_in') }}</a>
+                            <a href="{{ route('register') }}" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-black">
+                                {{ __('cta.create_account') }}
                             </a>
                         </div>
 
@@ -153,11 +175,11 @@
                             </button>
                             <div x-cloak x-show="open" class="absolute left-0 right-0 top-[104px] bg-white border-b border-gray-100 shadow-lg">
                                 <div class="max-w-7xl mx-auto px-4 py-4 space-y-2">
-                                    <a href="#features" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">Productos</a>
-                                    <a href="#seguridad" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">Seguridad</a>
-                                    <a href="#faq" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">Ayuda</a>
-                                    <a href="{{ route('login') }}" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">Ingresar</a>
-                                    <a href="{{ route('register') }}" class="block px-3 py-2 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700">Crear cuenta</a>
+                                    <a href="#features" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">{{ __('nav.products') }}</a>
+                                    <a href="#seguridad" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">{{ __('nav.security') }}</a>
+                                    <a href="#faq" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">{{ __('nav.help') }}</a>
+                                    <a href="{{ route('login') }}" class="block px-3 py-2 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50">{{ __('cta.sign_in') }}</a>
+                                    <a href="{{ route('register') }}" class="block px-3 py-2 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-black">{{ __('cta.create_account') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -171,23 +193,23 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
                         <div>
-                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold">
-                                <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-                                Tu wallet digital
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold">
+                                <span class="w-2 h-2 rounded-full bg-gray-900"></span>
+                                {{ __('hero.badge') }}
                             </div>
                             <h1 class="mt-5 text-4xl sm:text-5xl font-black text-gray-900 leading-tight">
-                                Mueve tu plata
-                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-sky-600">desde el celu</span>
+                                {{ __('hero.title_1') }}
+                                <span class="text-gray-900">{{ __('hero.title_2') }}</span>
                             </h1>
                             <p class="mt-4 text-lg text-gray-600">
-                                Envía, recibe, paga y administra tu dinero con seguridad. Diseñado para una experiencia rápida y simple.
+                                {{ __('hero.subtitle') }}
                             </p>
                             <div class="mt-7 flex flex-col sm:flex-row gap-3">
-                                <a href="{{ route('register') }}" class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-center">
-                                    Crear cuenta
+                                <a href="{{ route('register') }}" class="px-5 py-3 rounded-2xl bg-gray-900 hover:bg-black text-white font-semibold text-center">
+                                    {{ __('cta.create_account') }}
                                 </a>
                                 <a href="{{ route('login') }}" class="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-900 font-semibold text-center">
-                                    Ingresar
+                                    {{ __('cta.sign_in') }}
                                 </a>
                             </div>
                             <div class="mt-6 flex items-center gap-3 text-xs text-gray-500">
@@ -198,25 +220,41 @@
                         </div>
 
                         <div class="relative">
-                            <div class="absolute -inset-4 bg-gradient-to-br from-emerald-200/40 via-sky-200/30 to-indigo-200/30 blur-2xl rounded-full"></div>
-                            <div class="relative bg-white border border-gray-100 rounded-3xl shadow-2xl overflow-hidden">
-                                <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                                    <div class="text-sm font-semibold text-gray-900">Saldo App Preview</div>
-                                    <div class="text-xs text-gray-400">Mobile UI</div>
-                                </div>
-                                <div class="p-6">
-                                    <div class="h-52 rounded-2xl bg-gradient-to-br from-emerald-600 to-sky-600"></div>
-                                    <div class="mt-5 grid grid-cols-2 gap-3">
-                                        <div class="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-                                            <div class="text-xs text-gray-500">Disponible</div>
-                                            <div class="text-lg font-black text-gray-900 mt-1">$ 0</div>
+                            <div class="absolute -inset-6 bg-gradient-to-br from-gray-200/60 via-white/60 to-gray-300/60 blur-3xl rounded-full"></div>
+                            <div class="relative overflow-hidden rounded-3xl border border-gray-100 shadow-2xl bg-gradient-to-br from-[#0b0b0d] to-[#1b1b20] text-white">
+                                <div class="p-7">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-xs font-semibold">
+                                        {{ __('banner.kicker') }}
+                                    </div>
+                                    <div class="mt-4 text-3xl sm:text-4xl font-black leading-tight">
+                                        {{ __('banner.title') }}
+                                    </div>
+                                    <div class="mt-3 text-sm text-white/80">
+                                        {{ __('banner.subtitle') }}
+                                    </div>
+                                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                                        <a href="#faq" class="px-5 py-3 rounded-2xl bg-white text-gray-900 hover:bg-gray-100 font-semibold text-center">
+                                            {{ __('banner.cta_primary') }}
+                                        </a>
+                                        <a href="{{ route('register') }}" class="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-semibold text-center">
+                                            {{ __('banner.cta_secondary') }}
+                                        </a>
+                                    </div>
+
+                                    <div class="mt-7 grid grid-cols-2 gap-3">
+                                        <div class="rounded-2xl bg-white/10 border border-white/10 p-4">
+                                            <div class="text-xs text-white/70">Tips de seguridad</div>
+                                            <div class="mt-1 text-lg font-black">Anti-fraude</div>
                                         </div>
-                                        <div class="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-                                            <div class="text-xs text-gray-500">Movimientos</div>
-                                            <div class="text-lg font-black text-gray-900 mt-1">+</div>
+                                        <div class="rounded-2xl bg-white/10 border border-white/10 p-4">
+                                            <div class="text-xs text-white/70">Soporte</div>
+                                            <div class="mt-1 text-lg font-black">24/7</div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="absolute -right-10 -bottom-12 w-60 h-60 rounded-full bg-white/10 blur-2xl"></div>
+                                <div class="absolute right-6 bottom-6 w-32 h-32 rounded-3xl bg-white/10 border border-white/10 rotate-12"></div>
                             </div>
                         </div>
                     </div>
@@ -227,43 +265,43 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex items-end justify-between gap-6">
                         <div>
-                            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">Todo en una sola wallet</h2>
-                            <p class="mt-2 text-gray-600">Herramientas para tu día a día, en una experiencia pensada para móvil.</p>
+                            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">{{ __('features.title') }}</h2>
+                            <p class="mt-2 text-gray-600">{{ __('features.subtitle') }}</p>
                         </div>
                         <a href="{{ route('register') }}" class="hidden sm:inline-flex px-4 py-2 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-sm font-semibold text-gray-900">
-                            Empezar
+                            {{ __('hero.start') }}
                         </a>
                     </div>
 
                     <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                                 </svg>
                             </div>
-                            <div class="mt-4 text-lg font-bold text-gray-900">Multi-moneda</div>
-                            <div class="mt-2 text-sm text-gray-600">Administra balances en varias monedas y mueve tu dinero con facilidad.</div>
+                            <div class="mt-4 text-lg font-bold text-gray-900">{{ __('features.item1.title') }}</div>
+                            <div class="mt-2 text-sm text-gray-600">{{ __('features.item1.body') }}</div>
                         </div>
 
                         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                            <div class="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                 </svg>
                             </div>
-                            <div class="mt-4 text-lg font-bold text-gray-900">Transferencias</div>
-                            <div class="mt-2 text-sm text-gray-600">Envía y recibe usando email, teléfono o QR, con trazabilidad.</div>
+                            <div class="mt-4 text-lg font-bold text-gray-900">{{ __('features.item2.title') }}</div>
+                            <div class="mt-2 text-sm text-gray-600">{{ __('features.item2.body') }}</div>
                         </div>
 
                         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
                                 </svg>
                             </div>
-                            <div class="mt-4 text-lg font-bold text-gray-900">Pagos con QR</div>
-                            <div class="mt-2 text-sm text-gray-600">Paga y cobra sin efectivo con una experiencia simple y rápida.</div>
+                            <div class="mt-4 text-lg font-bold text-gray-900">{{ __('features.item3.title') }}</div>
+                            <div class="mt-2 text-sm text-gray-600">{{ __('features.item3.body') }}</div>
                         </div>
                     </div>
                 </div>
@@ -273,37 +311,37 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
                         <div>
-                            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">Seguridad primero</h2>
-                            <p class="mt-3 text-gray-600">Controles diseñados para reducir fraude y proteger tu acceso.</p>
+                            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">{{ __('security.title') }}</h2>
+                            <p class="mt-3 text-gray-600">{{ __('security.subtitle') }}</p>
                             <div class="mt-6 space-y-3">
                                 <div class="flex items-start gap-3">
-                                    <div class="mt-1 w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white">
+                                    <div class="mt-1 w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center text-white">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </div>
-                                    <div class="text-sm text-gray-700"><span class="font-semibold">OTP por SMS y Email</span> con tiempo de expiración y límites de reenvío.</div>
+                                    <div class="text-sm text-gray-700">{{ __('security.bullet1') }}</div>
                                 </div>
                                 <div class="flex items-start gap-3">
-                                    <div class="mt-1 w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white">
+                                    <div class="mt-1 w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center text-white">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </div>
-                                    <div class="text-sm text-gray-700"><span class="font-semibold">Dispositivos</span> con verificación y registro de actividad.</div>
+                                    <div class="text-sm text-gray-700">{{ __('security.bullet2') }}</div>
                                 </div>
                                 <div class="flex items-start gap-3">
-                                    <div class="mt-1 w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white">
+                                    <div class="mt-1 w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center text-white">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </div>
-                                    <div class="text-sm text-gray-700"><span class="font-semibold">Panel admin</span> con auditoría, allowlist y configuración de integraciones.</div>
+                                    <div class="text-sm text-gray-700">{{ __('security.bullet3') }}</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="bg-gradient-to-br from-emerald-600 to-sky-600 rounded-3xl p-8 text-white shadow-2xl">
+                        <div class="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-8 text-white shadow-2xl">
                             <div class="text-sm font-semibold opacity-90">Tip de seguridad</div>
                             <div class="mt-2 text-2xl font-black leading-tight">Nunca compartas tu código OTP.</div>
                             <div class="mt-3 text-sm opacity-90">Saldo nunca te pedirá el código por llamadas o redes sociales.</div>
                             <div class="mt-6 flex gap-3">
                                 <a href="#faq" class="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-sm font-semibold">Ver consejos</a>
-                                <a href="{{ route('register') }}" class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-50 text-sm font-semibold">Crear cuenta</a>
+                                <a href="{{ route('register') }}" class="px-4 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-50 text-sm font-semibold">{{ __('cta.create_account') }}</a>
                             </div>
                         </div>
                     </div>
@@ -393,68 +431,95 @@
                         </div>
                         <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                             <a href="mailto:support@saldo.com.co" class="px-5 py-3 rounded-2xl bg-gray-900 hover:bg-black text-white font-semibold text-center">Contactar soporte</a>
-                            <a href="{{ route('register') }}" class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-center">Crear cuenta</a>
+                            <a href="{{ route('register') }}" class="px-5 py-3 rounded-2xl bg-gray-900 hover:bg-black text-white font-semibold text-center">{{ __('cta.create_account') }}</a>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
 
-        <footer class="bg-gray-950 text-white">
+        <footer class="bg-[#14061f] text-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
-                    <div class="lg:col-span-2">
-                        <div class="text-2xl font-black">Saldo<span class="text-emerald-400">.</span></div>
-                        <div class="mt-3 text-sm text-gray-300 max-w-md">
-                            Una experiencia enfocada en móvil para mover tu plata con seguridad.
-                        </div>
-                        <div class="mt-6 flex items-center gap-3">
-                            <a href="https://facebook.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center">
-                                <span class="text-sm font-semibold">f</span>
-                            </a>
-                            <a href="https://instagram.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center">
-                                <span class="text-sm font-semibold">ig</span>
-                            </a>
-                            <a href="https://x.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center">
-                                <span class="text-sm font-semibold">x</span>
-                            </a>
-                            <a href="https://youtube.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center">
-                                <span class="text-sm font-semibold">yt</span>
-                            </a>
+                <div class="flex items-center justify-between gap-6">
+                    <div class="text-2xl font-black">
+                        Saldo<span class="text-white">.</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="#" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold">
+                            <span class="w-5 h-5 rounded-lg bg-white/15 flex items-center justify-center"></span>
+                            App Store
+                        </a>
+                        <a href="#" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold">
+                            <span class="w-5 h-5 rounded-lg bg-white/15 flex items-center justify-center">▶</span>
+                            Google Play
+                        </a>
+                        <a href="#" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold">
+                            <span class="w-5 h-5 rounded-lg bg-white/15 flex items-center justify-center">A</span>
+                            AppGallery
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+                    <div>
+                        <div class="text-sm font-semibold text-white/90">Información legal</div>
+                        <div class="mt-4 space-y-2 text-sm text-white/70">
+                            <a href="{{ url('/' . ($locale ?? 'es-CO') . '/terminos') }}" class="block hover:text-white">Términos y condiciones</a>
+                            <a href="{{ url('/' . ($locale ?? 'es-CO') . '/privacidad') }}" class="block hover:text-white">Política de datos</a>
+                            <a href="#" class="block hover:text-white">Política de cookies</a>
+                            <a href="#" class="block hover:text-white">Defensor del consumidor</a>
                         </div>
                     </div>
 
                     <div>
-                        <div class="text-sm font-semibold text-white">Productos</div>
-                        <div class="mt-4 space-y-2 text-sm text-gray-300">
-                            <a href="#features" class="block hover:text-white">Wallet</a>
-                            <a href="#servicios" class="block hover:text-white">Servicios</a>
-                            <a href="#seguridad" class="block hover:text-white">Seguridad</a>
+                        <div class="text-sm font-semibold text-white/90">Para personas</div>
+                        <div class="mt-4 space-y-2 text-sm text-white/70">
+                            <a href="#features" class="block hover:text-white">Bolsillos</a>
+                            <a href="#features" class="block hover:text-white">Transferencias</a>
+                            <a href="#servicios" class="block hover:text-white">Pagos</a>
+                            <a href="#servicios" class="block hover:text-white">Recargas</a>
                         </div>
                     </div>
 
                     <div>
-                        <div class="text-sm font-semibold text-white">Ayuda</div>
-                        <div class="mt-4 space-y-2 text-sm text-gray-300">
-                            <a href="#faq" class="block hover:text-white">Preguntas</a>
-                            <a href="#contacto" class="block hover:text-white">Soporte</a>
-                            <a href="mailto:support@saldo.com.co" class="block hover:text-white">Email</a>
+                        <div class="text-sm font-semibold text-white/90">Para negocio</div>
+                        <div class="mt-4 space-y-2 text-sm text-white/70">
+                            <a href="#servicios" class="block hover:text-white">Cobros</a>
+                            <a href="#servicios" class="block hover:text-white">QR para vender</a>
+                            <a href="#servicios" class="block hover:text-white">Tienda</a>
+                            <a href="#features" class="block hover:text-white">Reportes</a>
                         </div>
                     </div>
 
                     <div>
-                        <div class="text-sm font-semibold text-white">Legal</div>
-                        <div class="mt-4 space-y-2 text-sm text-gray-300">
-                            <a href="{{ url('/' . ($locale ?? 'es-CO') . '/terminos') }}" class="block hover:text-white">Términos</a>
-                            <a href="{{ url('/' . ($locale ?? 'es-CO') . '/privacidad') }}" class="block hover:text-white">Privacidad</a>
-                            <a href="#" class="block hover:text-white">Cookies</a>
+                        <div class="text-sm font-semibold text-white/90">Ayuda</div>
+                        <div class="mt-4 space-y-2 text-sm text-white/70">
+                            <a href="#faq" class="block hover:text-white">Centro de ayuda</a>
+                            <a href="#seguridad" class="block hover:text-white">Tips de seguridad</a>
+                            <a href="mailto:support@saldo.com.co" class="block hover:text-white">Soporte</a>
+                            <a href="{{ route('login') }}" class="block hover:text-white">Ingresar</a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-sm font-semibold text-white/90">Conócenos</div>
+                        <div class="mt-4 space-y-2 text-sm text-white/70">
+                            <a href="#nosotros" class="block hover:text-white">¿Quiénes somos?</a>
+                            <a href="#nosotros" class="block hover:text-white">Blog</a>
+                            <a href="#nosotros" class="block hover:text-white">Trabaja con nosotros</a>
+                            <a href="#contacto" class="block hover:text-white">Contacto</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div class="text-xs text-gray-400">© {{ date('Y') }} Saldo Wallet. Todos los derechos reservados.</div>
-                    <div class="text-xs text-gray-400">Hecho para móvil.</div>
+                <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-xs text-white/60">© {{ date('Y') }} Saldo Wallet. Todos los derechos reservados.</div>
+                    <div class="flex items-center gap-3">
+                        <a href="https://facebook.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center text-xs font-semibold">f</a>
+                        <a href="https://instagram.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center text-xs font-semibold">ig</a>
+                        <a href="https://x.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center text-xs font-semibold">x</a>
+                        <a href="https://youtube.com" target="_blank" rel="noreferrer" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 flex items-center justify-center text-xs font-semibold">yt</a>
+                    </div>
                 </div>
             </div>
         </footer>

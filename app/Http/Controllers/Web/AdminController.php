@@ -19,8 +19,10 @@ use App\Services\SettingsService;
 use App\Mail\TestEmailMail;
 use App\Support\Totp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\File;
 
 class AdminController extends Controller
 {
@@ -461,10 +463,13 @@ class AdminController extends Controller
     {
         $validated = $request->validate(['to' => 'required|email|max:255']);
 
-        app(SettingsService::class)->applyMailConfig();
-        Mail::to($validated['to'])->send(new TestEmailMail('Prueba SMTP', 'Este es un correo de prueba enviado desde Saldo.'));
-
-        return back()->with('success', 'Correo de prueba enviado.');
+        try {
+            app(SettingsService::class)->applyMailConfig();
+            Mail::to($validated['to'])->send(new TestEmailMail('Prueba SMTP', 'Este es un correo de prueba enviado desde Saldo.'));
+            return back()->with('success', 'Correo de prueba enviado.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'No se pudo enviar el correo: ' . $e->getMessage());
+        }
     }
 
     public function testSms(Request $request)
@@ -473,8 +478,100 @@ class AdminController extends Controller
             'to' => 'required|string|max:50',
         ]);
 
-        app(OtpService::class)->sendTestSms($validated['to'], 'Saldo: SMS de prueba.');
+        try {
+            app(OtpService::class)->sendTestSms($validated['to'], 'Saldo: SMS de prueba.');
+            return back()->with('success', 'SMS de prueba enviado.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'No se pudo enviar el SMS: ' . $e->getMessage());
+        }
+    }
 
-        return back()->with('success', 'SMS de prueba enviado.');
+    public function clearCaches(Request $request)
+    {
+        try {
+            Artisan::call('view:clear');
+            Artisan::call('cache:clear');
+            Artisan::call('config:clear');
+            Artisan::call('route:clear');
+            return back()->with('success', 'Cache limpiado.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'No se pudo limpiar cache: ' . $e->getMessage());
+        }
+    }
+
+    public function seoSettings()
+    {
+        $locales = ['es-CO', 'es-AR', 'es-MX', 'es-ES', 'en-US'];
+        $settings = app(SettingsService::class);
+
+        $data = [
+            'site_name' => $settings->get('seo.site_name') ?? 'Saldo',
+            'favicon_version' => $settings->get('seo.favicon_version') ?? '1',
+            'locales' => $locales,
+            'seo' => [],
+        ];
+
+        foreach ($locales as $locale) {
+            $data['seo'][$locale] = [
+                'title' => $settings->get('seo.home.' . $locale . '.title') ?? null,
+                'description' => $settings->get('seo.home.' . $locale . '.description') ?? null,
+                'keywords' => $settings->get('seo.home.' . $locale . '.keywords') ?? null,
+                'robots' => $settings->get('seo.home.' . $locale . '.robots') ?? null,
+            ];
+        }
+
+        return view('admin.settings.seo', $data);
+    }
+
+    public function saveSeo(Request $request)
+    {
+        $locales = ['es-CO', 'es-AR', 'es-MX', 'es-ES', 'en-US'];
+
+        $rules = [
+            'site_name' => 'required|string|max:60',
+        ];
+
+        foreach ($locales as $locale) {
+            $rules['title.' . $locale] = 'nullable|string|max:70';
+            $rules['description.' . $locale] = 'nullable|string|max:170';
+            $rules['keywords.' . $locale] = 'nullable|string|max:255';
+            $rules['robots.' . $locale] = 'nullable|string|max:255';
+        }
+
+        $validated = $request->validate($rules);
+
+        $adminId = auth('admin')->user()?->id;
+        $settings = app(SettingsService::class);
+
+        $settings->set('seo.site_name', $validated['site_name'], false, $adminId);
+
+        foreach ($locales as $locale) {
+            $settings->set('seo.home.' . $locale . '.title', $validated['title'][$locale] ?? null, false, $adminId);
+            $settings->set('seo.home.' . $locale . '.description', $validated['description'][$locale] ?? null, false, $adminId);
+            $settings->set('seo.home.' . $locale . '.keywords', $validated['keywords'][$locale] ?? null, false, $adminId);
+            $settings->set('seo.home.' . $locale . '.robots', $validated['robots'][$locale] ?? null, false, $adminId);
+        }
+
+        return back()->with('success', 'SEO actualizado.');
+    }
+
+    public function uploadFavicon(Request $request)
+    {
+        $request->validate([
+            'favicon' => 'required|file|max:512|mimes:ico,png',
+        ]);
+
+        try {
+            $file = $request->file('favicon');
+            $target = public_path('favicon.ico');
+            File::put($target, File::get($file->getRealPath()));
+
+            $adminId = auth('admin')->user()?->id;
+            app(SettingsService::class)->set('seo.favicon_version', (string) time(), false, $adminId);
+
+            return back()->with('success', 'Favicon actualizado.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'No se pudo subir favicon: ' . $e->getMessage());
+        }
     }
 }

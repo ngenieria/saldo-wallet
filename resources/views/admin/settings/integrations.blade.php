@@ -5,6 +5,20 @@
                 {{ session('success') }}
             </div>
         @endif
+        @if (session('error'))
+            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-2">Mantenimiento</h2>
+            <div class="text-sm text-gray-600">Si hiciste cambios y no se reflejan, limpia la cache de vistas/config.</div>
+            <form method="POST" action="{{ route('admin.settings.tools.clearCache') }}" class="mt-4">
+                @csrf
+                <button class="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-900">Limpiar cache</button>
+            </form>
+        </div>
 
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">SMTP</h2>
@@ -98,4 +112,3 @@
         </div>
     </div>
 </x-layouts.admin>
-

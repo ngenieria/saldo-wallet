@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Saldo Admin Panel</title>
+    @php($faviconVersion = app(\App\Services\SettingsService::class)->get('seo.favicon_version') ?? '1')
+    <link rel="icon" href="/favicon.ico?v={{ $faviconVersion }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -30,6 +32,7 @@
                 <a href="{{ route('admin.security') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Security</a>
                 <a href="{{ route('admin.settings.security') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Settings</a>
                 <a href="{{ route('admin.settings.integrations') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Integrations</a>
+                <a href="{{ route('admin.settings.seo') }}" class="block px-4 py-2 rounded hover:bg-gray-700">SEO</a>
             </nav>
             <div class="p-4 border-t border-gray-700">
                 <form method="POST" action="{{ route('admin.logout') }}">

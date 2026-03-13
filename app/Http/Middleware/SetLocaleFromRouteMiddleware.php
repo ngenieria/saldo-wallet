@@ -11,11 +11,14 @@ class SetLocaleFromRouteMiddleware
     {
         $locale = $request->route('locale');
 
-        if (is_string($locale) && preg_match('/^[a-z]{2}-[A-Z]{2}$/', $locale)) {
+        $allowed = ['es-CO', 'es-AR', 'es-MX', 'es-ES', 'en-US'];
+
+        if (is_string($locale) && in_array($locale, $allowed, true)) {
             app()->setLocale($locale);
+        } elseif (is_string($locale) && preg_match('/^[a-z]{2}-[A-Z]{2}$/', $locale)) {
+            return redirect('/es-CO');
         }
 
         return $next($request);
     }
 }
-
